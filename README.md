@@ -4,4 +4,5 @@ Benchmarks the performance of multiple RAFT protocol implementations. Currently 
 ## RAFT Implementations 
 * etcd-io/etcd: [https://github.com/etcd-io/etcd.git](https://github.com/etcd-io/etcd)
 * hashicorp/raft: [https://github.com/hashicorp/raft.git](https://github.com/hashicorp/raft)
-* tikv/raft-rs: [https://github.com/tikv/tikv](https://github.com/tikv/tikv.git)
+* tikv/raft-rs: [https://github.com/tikv/raft](https://github.com/tikv/raft-rs)
+* tikv: [https://github.com/tikv/tikv](https://github.com/tikv/tikv.git)
