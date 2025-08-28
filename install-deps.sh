@@ -1,4 +1,6 @@
 mkdir raft-engines
+mkdir -p /dev/shm/datadir
+mkdir -p /home/cc/datadir
 
 git clone https://github.com/etcd-io/etcd.git raft-engines/etcd-raft
 git clone https://github.com/hashicorp/raft.git raft-engines/hashicorp-raft
