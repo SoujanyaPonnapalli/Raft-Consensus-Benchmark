@@ -20,6 +20,7 @@ if ! grep -q "GOROOT" ~/.bashrc; then
     echo "export GOPATH=$HOME/projects" >> ~/.bashrc
     echo "export PATH=$PATH:$GOROOT/bin:$GOPATH/bin" >> ~/.bashrc
 else
+    go version
     echo "Go already in path"
 fi
 source ~/.bashrc
@@ -33,18 +34,4 @@ fi
 if ! rustc --version &> /dev/null; then
     rustup install stable
     rustup update
-else
-    echo "Rust already installed"
-fi
-
-# Install rust dependencies
-if ! command -v cargo-udeps &> /dev/null; then
-    cargo install cargo-udeps
-else
-    echo "cargo-udeps already installed"
-fi
-if ! command -v cargo-udeps &> /dev/null; then
-    cargo install cargo-udeps
-else
-    echo "cargo-udeps already installed"
 fi
