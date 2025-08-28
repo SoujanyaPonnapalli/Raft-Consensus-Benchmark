@@ -12,24 +12,24 @@
   ],
   "raft_engines": {
     "etcd": {
-      "server_port": 2379,
-      "client_port": 2380
+      "fsync_disk": 2379,
+      "in_memory": 2380
     },
     "tikv": {
-      "server_port": 20160,
-      "client_port": 20161
+      "fsync_disk": 20160,
+      "in_memory": 20161
     },
     "hashicorp": {
-      "server_port": 8500,
-      "client_port": 8501
+      "fsync_disk": 8500,
+      "in_memory": 8501
     },
     "tikv-rs": {
-      "server_port": 20170,
-      "client_port": 20171
+      "fsync_disk": 20170,
+      "in_memory": 20171
     },
     "redis": {
-      "server_port": 6379,
-      "client_port": 6380
+      "fsync_disk": 6379,
+      "in_memory": 6380
     }
   }
 }
