@@ -10,6 +10,8 @@ git clone https://github.com/redis/redis.git raft-engines/redis
 if [ ! -d "/usr/local/go" ]; then
     wget https://go.dev/dl/go1.25.0.linux-amd64.tar.gz
     sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.0.linux-amd64.tar.gz
+else
+    echo "Go already installed"
 fi
 
 # Add go to path
@@ -17,14 +19,32 @@ if ! grep -q "GOROOT" ~/.bashrc; then
     echo "export GOROOT=/usr/local/go" >> ~/.bashrc
     echo "export GOPATH=$HOME/projects" >> ~/.bashrc
     echo "export PATH=$PATH:$GOROOT/bin:$GOPATH/bin" >> ~/.bashrc
+else
+    echo "Go already in path"
 fi
 source ~/.bashrc
 
 # Install cargo
 if ! command -v rustup &> /dev/null; then
     sudo apt-get install rustup
+else
+    echo "Rustup already installed"
 fi
 if ! rustc --version &> /dev/null; then
     rustup install stable
     rustup update
+else
+    echo "Rust already installed"
+fi
+
+# Install rust dependencies
+if ! command -v cargo-udeps &> /dev/null; then
+    cargo install cargo-udeps
+else
+    echo "cargo-udeps already installed"
+fi
+if ! command -v cargo-udeps &> /dev/null; then
+    cargo install cargo-udeps
+else
+    echo "cargo-udeps already installed"
 fi
