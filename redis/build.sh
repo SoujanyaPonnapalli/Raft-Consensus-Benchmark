@@ -1,6 +1,8 @@
+sudo sysctl vm.overcommit_memory=1
 
 sudo firewall-cmd --add-port=6379/tcp --permanent
 sudo firewall-cmd --add-port=6380/tcp --permanent
+sudo firewall-cmd --add-port=6381/tcp --permanent
 sudo firewall-cmd --reload
 
 

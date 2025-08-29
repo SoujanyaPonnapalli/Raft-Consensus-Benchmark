@@ -23,10 +23,10 @@ LOG_FILE="redis-fsync-benchmark-${TIMESTAMP}.log"
 # Write CSV header
 echo "fsync_option,cluster_size,clients,size_bytes,requests_per_second,avg_latency_ms,min_latency_ms,p50_latency_ms,p95_latency_ms,p99_latency_ms,max_latency_ms,throughput_mbps" > "$CSV_FILE"
 
-for NUM_SERVERS in 3 5 7; do
+for NUM_SERVERS in 3 5; do
   SERVERS=(${SERVERS[@]:0:$NUM_SERVERS})  
   echo ${SERVERS[@]}
-  for size in 1024 4096 1048576; do
+  for size in 1024 4096 8192 16384; do
     for fsync_option in ${FSYNC_OPTIONS[@]}; do
       if [ "$fsync_option" = "fsync-disk" ]; then
           PORT=6379
@@ -65,7 +65,7 @@ for NUM_SERVERS in 3 5 7; do
         echo "Testing: clients=$clients, size=${size}B"
         
         # Run benchmark and capture output
-        OUTPUT=$(./raft-engines/redis/src/redis-benchmark -h $HOST -p $PORT -t set -n $NUM_KEYS -c $clients -d $size -P 100)
+        OUTPUT=$(./raft-engines/redis/src/redis-benchmark -h $HOST -p $PORT -t set -n $NUM_KEYS -c $clients -d $size -P 50)
         # append the output to the log file
         echo "$OUTPUT" >> $LOG_FILE
         
