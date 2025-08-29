@@ -15,8 +15,8 @@ SSH_PEMFILE=$(cat cluster-config.json | jq -r '.ssh_pemfile')
 
 # Create CSV file with timestamp
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-CSV_FILE="fsync-benchmark-${TIMESTAMP}.csv"
-LOG_FILE="fsync-benchmark-${TIMESTAMP}.log"
+CSV_FILE="redis-fsync-benchmark-${TIMESTAMP}.csv"
+LOG_FILE="redis-fsync-benchmark-${TIMESTAMP}.log"
 
 # Write CSV header
 echo "fsync_option,cluster_size,clients,size_bytes,requests_per_second,avg_latency_ms,min_latency_ms,p50_latency_ms,p95_latency_ms,p99_latency_ms,max_latency_ms,throughput_mbps" > "$CSV_FILE"
@@ -56,15 +56,19 @@ for NUM_SERVERS in 3 5 7; do
             done
         fi
 
+        # Update the primary's config to have the correct number of replicas
+        ./raft-engines/redis/src/redis-cli -h $HOST -p $PORT -c config set min-replicas-to-write $((NUM_SERVERS-1))
+        ./raft-engines/redis/src/redis-cli -h $HOST -p $PORT -c config set min-replicas-max-lag 0
+
         # wait for the primary to be ready
         echo "Waiting for the primary to be ready"
         sleep 5
-        ./raft-engines/redis/src/redis-cli -h $HOST -p $PORT -c -a cc info replication
+        ./raft-engines/redis/src/redis-cli -h $HOST -p $PORT -c info replication
 
         echo "Testing: clients=$clients, size=${size}B"
         
         # Run benchmark and capture output
-        OUTPUT=$(./raft-engines/redis/src/redis-benchmark -h $HOST -p $PORT -t set -n $NUM_KEYS -c $clients -d $size)
+        OUTPUT=$(./raft-engines/redis/src/redis-benchmark -h $HOST -p $PORT -t set -n $NUM_KEYS -c $clients -d $size -P 100)
         # append the output to the log file
         echo "$OUTPUT" >> $LOG_FILE
         
