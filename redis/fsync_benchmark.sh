@@ -24,13 +24,13 @@ echo "fsync_option,cluster_size,clients,size_bytes,requests_per_second,avg_laten
 for NUM_SERVERS in 3 5 7; do
   SERVERS=(${SERVERS[@]:0:$NUM_SERVERS})  
   echo ${SERVERS[@]}
-  for USE_DISK in true false; do
-    if [ "$USE_DISK" = true ]; then
-        PORT=6379
-    else
-        PORT=6380
-    fi
-    for size in 8 64 256 1024 4096 1048576; do
+  for size in 8 64 256 1024 4096 1048576; do
+    for USE_DISK in true false; do
+      if [ "$USE_DISK" = true ]; then
+          PORT=6379
+      else
+          PORT=6380
+      fi
         for clients in 1 10 50 100 200 400 800 1000; do
 
         # clean up data dirs and server logs
@@ -38,7 +38,7 @@ for NUM_SERVERS in 3 5 7; do
             echo "Cleaning up $server"
             ssh -i $SSH_PEMFILE $USERNAME@$server "rm -rf /home/cc/datadir; mkdir /home/cc/datadir;"
             ssh -i $SSH_PEMFILE $USERNAME@$server "rm -rf /dev/shm/datadir; mkdir /dev/shm/datadir;"
-            ssh -i $SSH_PEMFILE $USERNAME@$server "pkill -9 -f redis-server"
+            ssh -i $SSH_PEMFILE $USERNAME@$server "pkill -9 -f redis-server; rm -rf /dev/shm/redis-server.log"
         done
 
         # restart the redis primary and secondary replicas

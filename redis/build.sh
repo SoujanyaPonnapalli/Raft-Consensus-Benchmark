@@ -1,3 +1,9 @@
+
+sudo firewall-cmd --add-port=6379/tcp --permanent
+sudo firewall-cmd --add-port=6380/tcp --permanent
+sudo firewall-cmd --reload
+
+
 cd $HOME/projects/Raft-Consensus-Benchmark
 
 cd raft-engines/redis/; make
