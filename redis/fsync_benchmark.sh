@@ -3,7 +3,8 @@
 HOST=129.114.108.171
 
 NUM_KEYS=10000
-FSYNC_OPTIONS=["fsync-disk", "fsync-inmem", "only-exec-inmem"]
+FSYNC_OPTIONS="fsync-disk fsync-inmem only-exec-inmem"
+#list of fsync options
 
 # read servers from cluster-config.json
 SERVERS=$(cat cluster-config.json | jq -r '.servers[] | "\(.ip)"')
@@ -41,7 +42,7 @@ for NUM_SERVERS in 3 5 7; do
             echo "Cleaning up $server"
             ssh -i $SSH_PEMFILE $USERNAME@$server "rm -rf /home/cc/datadir; mkdir /home/cc/datadir;"
             ssh -i $SSH_PEMFILE $USERNAME@$server "rm -rf /dev/shm/datadir; mkdir /dev/shm/datadir;"
-            ssh -i $SSH_PEMFILE $USERNAME@$server "pkill -9 -f redis-server; rm -rf /dev/shm/redis-server.log"
+            ssh -i $SSH_PEMFILE $USERNAME@$server "pkill -9 -f redis-server; rm -rf /dev/shm/redis-server*.log; rm -rf /home/cc/redis-server*.log"
         done
 
         # restart the redis primary and secondary replicas
