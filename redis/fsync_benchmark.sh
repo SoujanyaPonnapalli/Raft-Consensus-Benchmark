@@ -3,6 +3,7 @@
 HOST=129.114.108.171
 
 NUM_KEYS=10000
+FSYNC_OPTIONS=["fsync-disk", "fsync-inmem", "only-exec-inmem"]
 
 # read servers from cluster-config.json
 SERVERS=$(cat cluster-config.json | jq -r '.servers[] | "\(.ip)"')
@@ -24,14 +25,16 @@ echo "fsync_option,cluster_size,clients,size_bytes,requests_per_second,avg_laten
 for NUM_SERVERS in 3 5 7; do
   SERVERS=(${SERVERS[@]:0:$NUM_SERVERS})  
   echo ${SERVERS[@]}
-  for size in 8 64 256 1024 4096 1048576; do
-    for USE_DISK in true false; do
-      if [ "$USE_DISK" = true ]; then
+  for size in 1024 4096 1048576; do
+    for fsync_option in ${FSYNC_OPTIONS[@]}; do
+      if [ "$fsync_option" = "fsync-disk" ]; then
           PORT=6379
-      else
+      elif [ "$fsync_option" = "fsync-inmem" ]; then
           PORT=6380
+      elif [ "$fsync_option" = "only-exec-inmem" ]; then
+          PORT=6381
       fi
-        for clients in 1 10 50 100 200 400 800 1000; do
+      for clients in 1 10 50 100 200 300 400 500; do
 
         # clean up data dirs and server logs
         for server in $SERVERS; do
@@ -44,17 +47,10 @@ for NUM_SERVERS in 3 5 7; do
         # restart the redis primary and secondary replicas
         server=${SERVERS[0]} # first server is the primary
         echo "Starting primary on $server"
-        if [ "$USE_DISK" = true ]; then
-            ssh -i $SSH_PEMFILE $USERNAME@$server "cd projects/Raft-Consensus-Benchmark; ./raft-engines/redis/src/redis-server redis/fsync-disk-primary.conf"
-            for server in ${SERVERS[@]:1:$((NUM_SERVERS-1))}; do
-                ssh -i $SSH_PEMFILE $USERNAME@$server "cd projects/Raft-Consensus-Benchmark; ./raft-engines/redis/src/redis-server redis/fsync-disk-replica.conf"
-            done
-        else
-            ssh -i $SSH_PEMFILE $USERNAME@$server "cd projects/Raft-Consensus-Benchmark; ./raft-engines/redis/src/redis-server redis/in-mem-primary.conf"
-            for server in ${SERVERS[@]:1:$((NUM_SERVERS-1))}; do
-                ssh -i $SSH_PEMFILE $USERNAME@$server "cd projects/Raft-Consensus-Benchmark; ./raft-engines/redis/src/redis-server redis/in-mem-replica.conf"
-            done
-        fi
+        ssh -i $SSH_PEMFILE $USERNAME@$server "cd projects/Raft-Consensus-Benchmark; ./raft-engines/redis/src/redis-server redis/$fsync_option-primary.conf"
+        for server in ${SERVERS[@]:1:$((NUM_SERVERS-1))}; do
+            ssh -i $SSH_PEMFILE $USERNAME@$server "cd projects/Raft-Consensus-Benchmark; ./raft-engines/redis/src/redis-server redis/$fsync_option-replica.conf"
+        done
 
         # Update the primary's config to have the correct number of replicas
         ./raft-engines/redis/src/redis-cli -h $HOST -p $PORT -c config set min-replicas-to-write $((NUM_SERVERS-1))
@@ -111,8 +107,8 @@ for NUM_SERVERS in 3 5 7; do
         fi
         
         # Write to CSV
-        echo "$USE_DISK,$NUM_SERVERS,$clients,$size,$RPS,$AVG_LATENCY,$MIN_LATENCY,$P50_LATENCY,$P95_LATENCY,$P99_LATENCY,$MAX_LATENCY,$THROUGHPUT" >> "$CSV_FILE"
-        echo "Results: USE_DISK=$USE_DISK,NUM_SERVERS=$NUM_SERVERS,clients=$clients,size=$size,RPS=$RPS,Avg Latency=${AVG_LATENCY}ms,Min Latency=${MIN_LATENCY}ms,P50 Latency=${P50_LATENCY}ms,P95 Latency=${P95_LATENCY}ms,P99 Latency=${P99_LATENCY}ms,Max Latency=${MAX_LATENCY}ms,Throughput=${THROUGHPUT}Mbps"
+        echo "$fsync_option,$NUM_SERVERS,$clients,$size,$RPS,$AVG_LATENCY,$MIN_LATENCY,$P50_LATENCY,$P95_LATENCY,$P99_LATENCY,$MAX_LATENCY,$THROUGHPUT" >> "$CSV_FILE"
+        echo "Results: fsync_option=$fsync_option,NUM_SERVERS=$NUM_SERVERS,clients=$clients,size=$size,RPS=$RPS,Avg Latency=${AVG_LATENCY}ms,Min Latency=${MIN_LATENCY}ms,P50 Latency=${P50_LATENCY}ms,P95 Latency=${P95_LATENCY}ms,P99 Latency=${P99_LATENCY}ms,Max Latency=${MAX_LATENCY}ms,Throughput=${THROUGHPUT}Mbps"
       done
     done
   done
